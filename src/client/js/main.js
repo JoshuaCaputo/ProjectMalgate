@@ -126,7 +126,7 @@ function init() {
                 break;
 
             case 32: // space
-                if (canJump === true) velocity.y += 35.0;
+                if (canJump === true) velocity.y += 8.0;
                 canJump = false;
                 break;
 
@@ -169,7 +169,7 @@ function init() {
     document.addEventListener('keydown', onKeyDown, false);
     document.addEventListener('keyup', onKeyUp, false);
 
-    raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 10);
+    raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 1);
 
     // floor
 
@@ -207,12 +207,43 @@ cube.receiveShadow = true; //default
         scene.add(cube);
     }
 
-    var playergeometry = new THREE.BoxGeometry(1, 2, 1);
+    yIndex = 0;
+    
+    for (let xIndex = 0; xIndex < size; xIndex++) {
+        if (Math.floor(Math.random()*5) != 1) {}
+        else {
+
+            var randomColor = "000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
+            var material = new THREE.MeshStandardMaterial({ color: getGrassColor()});
+            var cube = new THREE.Mesh(geometry, material);
+            cube.position.set(1 * xIndex - (yIndex * division), 1-0.5, 1 * yIndex);
+            if (Math.floor(Math.random()*3) == 1) {
+                
+            var randomColor = "000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
+            var material = new THREE.MeshStandardMaterial({ color: getGrassColor()});
+            var cube2 = new THREE.Mesh(geometry, material);
+            cube2.position.set(1 * xIndex - (yIndex * division), 2-0.5, 1 * yIndex);
+            scene.add(cube2);
+            objects.push(cube2)
+            }
+        }
+        if ((xIndex + 1) / division == Math.floor((xIndex + 1) / division)) {
+            yIndex++;
+        }
+        
+        cube.castShadow = true; //default is false
+cube.receiveShadow = true; //default
+        scene.add(cube);
+        objects.push(cube)
+
+    }
+
+    var playergeometry = new THREE.BoxGeometry(.5, 1, .5);
 
     var material = new THREE.MeshStandardMaterial({ color: 'white'});
     player = new THREE.Mesh(playergeometry, material);
     scene.add(player);
-    player.position.y=1;
+    player.position.y=-.5;
 
     var helper = new THREE.CameraHelper( light.shadow.camera );
     scene.add( helper );
@@ -257,17 +288,19 @@ function animate() {
     requestAnimationFrame(animate);
 
     if (controls.isLocked === true) {
-
-        raycaster.ray.origin.copy(controls.getObject().position);
-        raycaster.ray.origin.y -= 10;
-
-        var intersections = raycaster.intersectObjects(objects);
+        var raycaster3= new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), new THREE.Vector3(0,-1,0), 0.1, .5);
+        raycaster3.set(camera.getWorldPosition(new THREE.Vector3()), new THREE.Vector3(0,-1,0));
+        raycaster3.ray.origin.y += -.51
+        var intersections = raycaster3.intersectObjects(objects);
 
         var onObject = intersections.length > 0;
+        console.log(onObject)
 
         var time = performance.now();
         var delta = (time - prevTime) / 1000;
         var angleRadians = Math.atan2(camera.getWorldDirection(new THREE.Vector3()).z - 0, camera.getWorldDirection(new THREE.Vector3()).x - 0);
+
+
 
         if (moveForward) {    
             player.rotation.y = -angleRadians;
@@ -279,11 +312,25 @@ function animate() {
             camera.position.x+= -Math.cos(angleRadians)*delta;
             camera.position.z+= -Math.sin(angleRadians)*delta;
         }
+        if (moveLeft) {    
+            player.rotation.y = -angleRadians;
+            camera.position.x+= -Math.cos(angleRadians+(Math.PI/2))*delta;
+            camera.position.z+= -Math.sin(angleRadians+(Math.PI/2))*delta;
+        }
+        if (moveRight) {    
+            player.rotation.y = -angleRadians;
+            camera.position.x+= -Math.cos(angleRadians+(-Math.PI/2))*delta;
+            camera.position.z+= -Math.sin(angleRadians+(-Math.PI/2))*delta;
+        }
 
         if (onObject === true) {
 
             velocity.y = Math.max(0, velocity.y);
             canJump = true;
+
+        }
+        else {
+            velocity.y += -.21;
 
         }
 
@@ -305,7 +352,7 @@ function animate() {
     
     // angle in radians
     
-    player.position.set(camera.position.x, camera.position.y, camera.position.z)
+    player.position.set(camera.position.x, camera.position.y-.5, camera.position.z)
     var raycaster2 = new THREE.Raycaster(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()), cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()), .1, camera2.zoomDistance*2);
     raycaster2.set(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()), cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()))
     
