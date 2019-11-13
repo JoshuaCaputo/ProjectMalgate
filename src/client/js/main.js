@@ -283,14 +283,11 @@ function animate() {
 
     arrowHelper.scale.x = 1;
     arrowHelper.scale.z = 1;
-    for ( var i = 0; i < intersects.length; i++ ) {
 
-        arrowHelper.children[1].material.color.set( 0xff0000 );
-        arrowHelper.scale.x = 2;
-        arrowHelper.scale.z = 2;
-
+    $( "#cursor #button" ).css({'width': 20, 'height':20, 'margin-left':0}) 
+      for ( var i = 0; i < intersects.length; i++ ) {
+        $( "#cursor #button" ).css({'width': 50, 'height': 50, 'margin-left':'-12.5px'}) 
     }
-
 
     camera2.setRotationFromQuaternion(camera.getWorldQuaternion(new THREE.Quaternion()))
     camera2.position.set(

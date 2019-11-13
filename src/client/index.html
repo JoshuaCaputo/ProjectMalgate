@@ -2,55 +2,22 @@
 <html lang="en">
 
 <head>
-    <title>three.js - pointerlock controls</title>
+    <title>project malgate - development</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <!-- Cascasing Stylesheets -->
     <link type="text/css" rel="stylesheet" href="css/main.css">
+    <!-- JavaScript Requirements -->
+    <script src="js/libs/jquery-3.4.1.min.js"></script>
     <script src="js/libs/three.js"></script>
     <script src="js/controls/PointerLockControls.js"></script>
     <script src="js/controllers/CameraController.js"></script>
-    <style>
-        #blocker {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
 
-        #instructions {
-            width: 100%;
-            height: 100%;
-
-            display: -webkit-box;
-            display: -moz-box;
-            display: box;
-
-            -webkit-box-orient: horizontal;
-            -moz-box-orient: horizontal;
-            box-orient: horizontal;
-
-            -webkit-box-pack: center;
-            -moz-box-pack: center;
-            box-pack: center;
-
-            -webkit-box-align: center;
-            -moz-box-align: center;
-            box-align: center;
-
-            color: #ffffff;
-            text-align: center;
-            font-family: Arial;
-            font-size: 14px;
-            line-height: 24px;
-
-            cursor: pointer;
-        }
-    </style>
 </head>
 
 <body>
     <div id="cursor">
-        <div id="button" style="border-radius: 50%; background: red; width:20px; height:20px; display:block;"></div>
+        <div id="button" style="border-radius: 50%; background: white; width:20px; height:20px; display:block;"></div>
     </div>
 
     <div id="blocker">
@@ -64,7 +31,7 @@
         </div>
 
     </div>
-
+    <!-- Main Script -->
     <script src="js/main.js"></script>
 </body>
 
