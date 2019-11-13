@@ -59,7 +59,8 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff);
     scene.fog = new THREE.Fog(0xffffff, 0, 750);
-
+    var light = new THREE.AmbientLight( 0x404040 ); // soft white light
+    scene.add( light );
     var light = new THREE.HemisphereLight(0xeeeeff, 0x777788, 0.75);
     light.position.set(0.5, 1, 0.75);
     scene.add(light);
@@ -172,6 +173,18 @@ function init() {
 
     // floor
 
+    var light = new THREE.PointLight( 0xffffff, 1, 100 );
+light.position.set( 0, 25, 25 ); 			//default; light shining from top
+light.castShadow = true;            // default false
+scene.add( light );
+
+
+//Set up shadow properties for the light
+light.shadow.mapSize.width = 512;  // default
+light.shadow.mapSize.height = 512; // default
+light.shadow.camera.near = 0.5;    // default
+light.shadow.camera.far = 250;     // default
+
     var square_size = 25;
     var size = square_size * square_size;
     var division = square_size;
@@ -182,33 +195,47 @@ function init() {
     for (let xIndex = 0; xIndex < size; xIndex++) {
 
         var randomColor = "000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
-        var material = new THREE.MeshBasicMaterial({ color: getGrassColor()});
+        var material = new THREE.MeshStandardMaterial({ color: getGrassColor()});
         var cube = new THREE.Mesh(geometry, material);
         cube.position.set(1 * xIndex - (yIndex * division), -0.5, 1 * yIndex);
         if ((xIndex + 1) / division == Math.floor((xIndex + 1) / division)) {
             yIndex++;
         }
+        
+        cube.castShadow = false; //default is false
+cube.receiveShadow = true; //default
         scene.add(cube);
     }
 
     var playergeometry = new THREE.BoxGeometry(1, 2, 1);
 
-    var material = new THREE.MeshBasicMaterial({ color: 'white', wireframe:true });
+    var material = new THREE.MeshStandardMaterial({ color: 'white'});
     player = new THREE.Mesh(playergeometry, material);
     scene.add(player);
     player.position.y=1;
 
+    var helper = new THREE.CameraHelper( light.shadow.camera );
+    scene.add( helper );
+
+    player.castShadow = true; //default is false
+    player.receiveShadow = true; //default
     //
     var geometry = new THREE.SphereGeometry( .25, 32, 32 );
-    var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+    var material = new THREE.MeshStandardMaterial( {color: 0xffff00} );
      sphere = new THREE.Mesh( geometry, material );
     scene.add( sphere );
     sphere.position.set(2, .5, 2)
 
+    sphere.castShadow = true; //default is false
+    sphere.receiveShadow = true; //default
+    
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+        document.body.appendChild(renderer.domElement);
 
     //
 
@@ -242,10 +269,15 @@ function animate() {
         var delta = (time - prevTime) / 1000;
         var angleRadians = Math.atan2(camera.getWorldDirection(new THREE.Vector3()).z - 0, camera.getWorldDirection(new THREE.Vector3()).x - 0);
 
-        if (moveForward || moveBackward) {    
+        if (moveForward) {    
             player.rotation.y = -angleRadians;
             camera.position.x+= Math.cos(angleRadians)*delta*2;
             camera.position.z+= Math.sin(angleRadians)*delta*2;
+        }
+        if (moveBackward) {    
+            player.rotation.y = -angleRadians;
+            camera.position.x+= -Math.cos(angleRadians)*delta;
+            camera.position.z+= -Math.sin(angleRadians)*delta;
         }
 
         if (onObject === true) {
@@ -274,8 +306,8 @@ function animate() {
     // angle in radians
     
     player.position.set(camera.position.x, camera.position.y, camera.position.z)
-    var raycaster2 = new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()), .1, 1.5);
-    raycaster2.set(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()))
+    var raycaster2 = new THREE.Raycaster(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()), cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()), .1, camera2.zoomDistance*2);
+    raycaster2.set(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()), cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()))
     
     // calculate objects intersecting the picking ray
     var intersects = raycaster2.intersectObjects( [sphere] );
@@ -283,18 +315,36 @@ function animate() {
 
     arrowHelper.scale.x = 1;
     arrowHelper.scale.z = 1;
-
-    $( "#cursor #button" ).css({'width': 20, 'height':20, 'margin-left':0}) 
+    $('#cursor').css({
+            
+        width: '10px',
+        height: '10px',
+        left: 'calc(50% - 5px)',
+        top: 'calc(50% - 5px)',
+            })
+        
       for ( var i = 0; i < intersects.length; i++ ) {
-        $( "#cursor #button" ).css({'width': 50, 'height': 50, 'margin-left':'-12.5px'}) 
+
+        $('#cursor').css({
+            
+	width: '30px',
+	height: '30px',
+	left: 'calc(50% - 15px)',
+	top: 'calc(50% - 15px)',
+        })
     }
 
-    camera2.setRotationFromQuaternion(camera.getWorldQuaternion(new THREE.Quaternion()))
-    camera2.position.set(
-        camera.position.x - (camera2.zoomDistance*Math.cos(angleRadians)),
-        camera.position.y + (camera2.zoomDistance)*1.5,
-        camera.position.z - (camera2.zoomDistance*Math.sin(angleRadians))
-    )
+    //camera2.setRotationFromQuaternion(camera.getWorldQuaternion(new THREE.Quaternion()))
+    camera.add(camera2)
+    // camera2.position.set(
+    //     camera.position.x - (camera2.zoomDistance*Math.cos(angleRadians))/2,
+    //     camera.position.y + (camera2.zoomDistance/4),
+    //     camera.position.z - (camera2.zoomDistance*Math.sin(angleRadians))/2
+    // )
+    camera2.position.set(camera2.zoomDistance/100,0,camera2.zoomDistance)
+    if (camera2.zoomDistance > 10){
+        camera2.zoomDistance = 10;
+    }
 
     arrowHelper.position.copy(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()));
     arrowHelper.setDirection(cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()))
