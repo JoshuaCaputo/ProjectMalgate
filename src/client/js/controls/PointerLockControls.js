@@ -61,7 +61,6 @@ THREE.PointerLockControls = function ( camera, domElement ) {
 	}
 
 	function onPointerlockChange() {
-
 		if ( document.pointerLockElement === scope.domElement ) {
 
 			scope.dispatchEvent( lockEvent );

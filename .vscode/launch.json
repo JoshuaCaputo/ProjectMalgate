@@ -10,7 +10,7 @@
             "name": "Launch Mini Mode",
             "url": "file:///C:/Users/be9co/Documents/GitHub/ProjectMalgate/src/client/index.html",
             "webRoot": "${workspaceFolder}",
-            "runtimeArgs": ["--window-size=800,600", "--app"]
+            "runtimeArgs": ["--window-size=800,600", "--disable-web-security"]
         },
         {
             "type": "chrome",

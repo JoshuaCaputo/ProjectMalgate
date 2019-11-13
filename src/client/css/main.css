@@ -24,6 +24,7 @@ button {
 
 canvas {
 	display: block;
+	background: black;
 }
 
 #cursor {

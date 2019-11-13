@@ -1,5 +1,3 @@
-
-
 let cameraController = new CameraController();
 
 var camera, scene, renderer, controls;
@@ -29,14 +27,16 @@ var grassColors = [
     '#B0D236',
     '#CEFA61'
 ];
-function getGrassColor(){
-    return grassColors[Math.floor(Math.random()*grassColors.length)]
+
+function getGrassColor() {
+    return grassColors[Math.floor(Math.random() * grassColors.length)]
 }
 
 init();
 animate();
 
 function init() {
+    clock = new THREE.Clock();
 
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, .1, 100);
     cameraController.addCamera(camera, 'First Person')
@@ -44,36 +44,45 @@ function init() {
     camera2 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, .1, 100);
     camera2.zoomDistance = 2;
     camera2.updateZoom = (zoom) => {
-        if (zoom > 0){
+        if (zoom > 0) {
             cameraController.setCurrentCamera(1)
         }
 
-        camera2.zoomDistance+=zoom;
-        if (camera2.zoomDistance < 1){
+        camera2.zoomDistance += zoom;
+        if (camera2.zoomDistance < 1) {
             camera2.zoomDistance = 1;
             cameraController.setCurrentCamera(0)
         }
     }
+
+ try {
+    // Fix up for prefixing
+    window.AudioContext = window.AudioContext||window.webkitAudioContext;
+    context = new AudioContext();
+  }
+  catch(e) {
+    alert('Web Audio API is not supported in this browser');
+  }
     cameraController.addCamera(camera2, 'Third Person');
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
+    scene.background = new THREE.Color('black');
     scene.fog = new THREE.Fog(0xffffff, 0, 750);
-    var light = new THREE.AmbientLight( 0x404040 ); // soft white light
-    scene.add( light );
+    var light = new THREE.AmbientLight(0x404040); // soft white light
+    scene.add(light);
     var light = new THREE.HemisphereLight(0xeeeeff, 0x777788, 0.75);
     light.position.set(0.5, 1, 0.75);
     scene.add(light);
-    var dir = new THREE.Vector3( 1, 0, 0 );
+    var dir = new THREE.Vector3(1, 0, 0);
 
     //normalize the direction vector (convert to vector of length 1)
     dir.normalize();
-    
-    var origin = new THREE.Vector3( 0, 0, 0 );
+
+    var origin = new THREE.Vector3(0, 0, 0);
     var length = .25;
     var hex = 0xffff00;
-    
-    arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+
+    arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
     controls = new THREE.PointerLockControls(camera, document.body);
 
     var blocker = document.getElementById('blocker');
@@ -99,6 +108,8 @@ function init() {
 
     });
 
+    $('#bgtuner')[0].volume = .5
+    $('#bgtuner')[0].loop = 1
     scene.add(controls.getObject());
 
     var onKeyDown = function (event) {
@@ -108,6 +119,8 @@ function init() {
             case 38: // up
             case 87: // w
                 moveForward = true;
+                if ($('#myTune')[0].paused){
+                $('#myTune')[0].play();}
                 break;
 
             case 37: // left
@@ -128,6 +141,8 @@ function init() {
             case 32: // space
                 if (canJump === true) velocity.y += 8.0;
                 canJump = false;
+                if ($('#myTune2')[0].paused){
+                $('#myTune2')[0].play();}
                 break;
 
         }
@@ -135,7 +150,7 @@ function init() {
     };
 
     var onKeyUp = function (event) {
-
+        $('#myTune')[0].pause();
         switch (event.keyCode) {
 
             case 38: // up
@@ -162,28 +177,54 @@ function init() {
                 cameraController.cycleCameras()
                 break;
 
+                case 73: //i 
+                $('.hide_it').animate({width:'toggle'},100);
+                break;
+
         }
 
     };
+    let numLights = 20;
+    lights = []
 
+    lightBox = new THREE.Object3D();
+    function initLights() {
+        var distance = 3;
+        var c = new THREE.Vector3();
+        var geometry = new THREE.SphereBufferGeometry(.1, .1, 1);
+        for (var i = 0; i < numLights; i++) {
+            var light = new THREE.PointLight(0xffffff, 2.0, distance);
+            c.set(Math.random(), Math.random(), Math.random()).normalize();
+            light.color.setRGB(c.x, c.y, c.z);
+            lightBox.add(light);
+            lights.push(light);
+            var material = new THREE.MeshBasicMaterial({
+                color: light.color
+            });
+            var emitter = new THREE.Mesh(geometry, material);
+            light.add(emitter);
+        }
+        scene.add(lightBox)
+    }
+    initLights()
     document.addEventListener('keydown', onKeyDown, false);
     document.addEventListener('keyup', onKeyUp, false);
 
-    raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 1);
+    raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 1);
 
     // floor
 
-    var light = new THREE.PointLight( 0xffffff, 1, 100 );
-light.position.set( 0, 25, 25 ); 			//default; light shining from top
-light.castShadow = true;            // default false
-scene.add( light );
+    var light = new THREE.PointLight(0xffffff, 1, 100);
+    light.position.set(0, 25, 25); //default; light shining from top
+    light.castShadow = true; // default false
+    scene.add(light);
 
 
-//Set up shadow properties for the light
-light.shadow.mapSize.width = 512;  // default
-light.shadow.mapSize.height = 512; // default
-light.shadow.camera.near = 0.5;    // default
-light.shadow.camera.far = 250;     // default
+    //Set up shadow properties for the light
+    light.shadow.mapSize.width = 512; // default
+    light.shadow.mapSize.height = 512; // default
+    light.shadow.camera.near = 0.5; // default
+    light.shadow.camera.far = 250; // default
 
     var square_size = 25;
     var size = square_size * square_size;
@@ -194,45 +235,56 @@ light.shadow.camera.far = 250;     // default
 
     for (let xIndex = 0; xIndex < size; xIndex++) {
 
-        var randomColor = "000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
-        var material = new THREE.MeshStandardMaterial({ color: getGrassColor()});
+        var randomColor = "000000".replace(/0/g, function () {
+            return (~~(Math.random() * 16)).toString(16);
+        });
+        var material = new THREE.MeshStandardMaterial({
+            color: getGrassColor()
+        });
         var cube = new THREE.Mesh(geometry, material);
         cube.position.set(1 * xIndex - (yIndex * division), -0.5, 1 * yIndex);
         if ((xIndex + 1) / division == Math.floor((xIndex + 1) / division)) {
             yIndex++;
         }
-        
+
         cube.castShadow = false; //default is false
-cube.receiveShadow = true; //default
+        cube.receiveShadow = true; //default
         scene.add(cube);
     }
 
     yIndex = 0;
-    
-    for (let xIndex = 0; xIndex < size; xIndex++) {
-        if (Math.floor(Math.random()*5) != 1) {}
-        else {
 
-            var randomColor = "000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
-            var material = new THREE.MeshStandardMaterial({ color: getGrassColor()});
+    for (let xIndex = 0; xIndex < size; xIndex++) {
+        if (Math.floor(Math.random() * 5) != 1) {} else {
+
+            var randomColor = "000000".replace(/0/g, function () {
+                return (~~(Math.random() * 16)).toString(16);
+            });
+            var material = new THREE.MeshStandardMaterial({
+                color: getGrassColor()
+            });
             var cube = new THREE.Mesh(geometry, material);
-            cube.position.set(1 * xIndex - (yIndex * division), 1-0.5, 1 * yIndex);
-            if (Math.floor(Math.random()*3) == 1) {
-                
-            var randomColor = "000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
-            var material = new THREE.MeshStandardMaterial({ color: getGrassColor()});
-            var cube2 = new THREE.Mesh(geometry, material);
-            cube2.position.set(1 * xIndex - (yIndex * division), 2-0.5, 1 * yIndex);
-            scene.add(cube2);
-            objects.push(cube2)
+            cube.position.set(1 * xIndex - (yIndex * division), 1 - 0.5, 1 * yIndex);
+            if (Math.floor(Math.random() * 3) == 1) {
+
+                var randomColor = "000000".replace(/0/g, function () {
+                    return (~~(Math.random() * 16)).toString(16);
+                });
+                var material = new THREE.MeshStandardMaterial({
+                    color: getGrassColor()
+                });
+                var cube2 = new THREE.Mesh(geometry, material);
+                cube2.position.set(1 * xIndex - (yIndex * division), 2 - 0.5, 1 * yIndex);
+                scene.add(cube2);
+                objects.push(cube2)
             }
         }
         if ((xIndex + 1) / division == Math.floor((xIndex + 1) / division)) {
             yIndex++;
         }
-        
+
         cube.castShadow = true; //default is false
-cube.receiveShadow = true; //default
+        cube.receiveShadow = true; //default
         scene.add(cube);
         objects.push(cube)
 
@@ -240,33 +292,54 @@ cube.receiveShadow = true; //default
 
     var playergeometry = new THREE.BoxGeometry(.5, 1, .5);
 
-    var material = new THREE.MeshStandardMaterial({ color: 'white'});
+    var material = new THREE.MeshStandardMaterial({
+        color: 'white'
+    });
     player = new THREE.Mesh(playergeometry, material);
     scene.add(player);
-    player.position.y=-.5;
+    player.position.y = -.5;
 
-    var helper = new THREE.CameraHelper( light.shadow.camera );
-    scene.add( helper );
+    var helper = new THREE.CameraHelper(light.shadow.camera);
+    //scene.add(helper);
 
     player.castShadow = true; //default is false
     player.receiveShadow = true; //default
     //
-    var geometry = new THREE.SphereGeometry( .25, 32, 32 );
-    var material = new THREE.MeshStandardMaterial( {color: 0xffff00} );
-     sphere = new THREE.Mesh( geometry, material );
-    scene.add( sphere );
+    var geometry = new THREE.SphereGeometry(.15, 32, 32);
+    var material = new THREE.MeshPhongMaterial({
+        color: 'skyblue'
+    });
+    sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
     sphere.position.set(2, .5, 2)
 
     sphere.castShadow = true; //default is false
     sphere.receiveShadow = true; //default
-    
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    var light = new THREE.PointLight(0xffffff, 1, 1,2 );
+    sphere.add(light);
+    var geometry3 = new THREE.BoxGeometry(.3,.3,.3,.3);
+    var material = new THREE.MeshPhongMaterial({
+        color: 'pink'
+    });
+    box = new THREE.Mesh(geometry3, material);
+    scene.add(box);
+    box.position.set(3, .5, 2)
+
+    box.castShadow = true; //default is false
+    box.receiveShadow = true; //default
+    var light = new THREE.PointLight(0xffffff, 1, 1,2 );
+    box.add(light);
+
+
+    renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
-        document.body.appendChild(renderer.domElement);
+    document.body.appendChild(renderer.domElement);
 
     //
 
@@ -288,13 +361,12 @@ function animate() {
     requestAnimationFrame(animate);
 
     if (controls.isLocked === true) {
-        var raycaster3= new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), new THREE.Vector3(0,-1,0), 0.1, .5);
-        raycaster3.set(camera.getWorldPosition(new THREE.Vector3()), new THREE.Vector3(0,-1,0));
+        var raycaster3 = new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), new THREE.Vector3(0, -1, 0), 0.1, .5);
+        raycaster3.set(camera.getWorldPosition(new THREE.Vector3()), new THREE.Vector3(0, -1, 0));
         raycaster3.ray.origin.y += -.51
         var intersections = raycaster3.intersectObjects(objects);
 
         var onObject = intersections.length > 0;
-        console.log(onObject)
 
         var time = performance.now();
         var delta = (time - prevTime) / 1000;
@@ -302,25 +374,25 @@ function animate() {
 
 
 
-        if (moveForward) {    
+        if (moveForward) {
             player.rotation.y = -angleRadians;
-            camera.position.x+= Math.cos(angleRadians)*delta*2;
-            camera.position.z+= Math.sin(angleRadians)*delta*2;
+            camera.position.x += Math.cos(angleRadians) * delta * 2;
+            camera.position.z += Math.sin(angleRadians) * delta * 2;
         }
-        if (moveBackward) {    
+        if (moveBackward) {
             player.rotation.y = -angleRadians;
-            camera.position.x+= -Math.cos(angleRadians)*delta;
-            camera.position.z+= -Math.sin(angleRadians)*delta;
+            camera.position.x += -Math.cos(angleRadians) * delta;
+            camera.position.z += -Math.sin(angleRadians) * delta;
         }
-        if (moveLeft) {    
+        if (moveLeft) {
             player.rotation.y = -angleRadians;
-            camera.position.x+= -Math.cos(angleRadians+(Math.PI/2))*delta;
-            camera.position.z+= -Math.sin(angleRadians+(Math.PI/2))*delta;
+            camera.position.x += -Math.cos(angleRadians + (Math.PI / 2)) * delta;
+            camera.position.z += -Math.sin(angleRadians + (Math.PI / 2)) * delta;
         }
-        if (moveRight) {    
+        if (moveRight) {
             player.rotation.y = -angleRadians;
-            camera.position.x+= -Math.cos(angleRadians+(-Math.PI/2))*delta;
-            camera.position.z+= -Math.sin(angleRadians+(-Math.PI/2))*delta;
+            camera.position.x += -Math.cos(angleRadians + (-Math.PI / 2)) * delta;
+            camera.position.z += -Math.sin(angleRadians + (-Math.PI / 2)) * delta;
         }
 
         if (onObject === true) {
@@ -328,8 +400,7 @@ function animate() {
             velocity.y = Math.max(0, velocity.y);
             canJump = true;
 
-        }
-        else {
+        } else {
             velocity.y += -.21;
 
         }
@@ -349,35 +420,35 @@ function animate() {
         prevTime = time;
 
     }
-    
+
     // angle in radians
-    
-    player.position.set(camera.position.x, camera.position.y-.5, camera.position.z)
-    var raycaster2 = new THREE.Raycaster(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()), cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()), .1, camera2.zoomDistance*2);
+
+    player.position.set(camera.position.x, camera.position.y - .5, camera.position.z)
+    var raycaster2 = new THREE.Raycaster(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()), cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()), .1, camera2.zoomDistance * 2);
     raycaster2.set(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()), cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()))
-    
+
     // calculate objects intersecting the picking ray
-    var intersects = raycaster2.intersectObjects( [sphere] );
-    arrowHelper.children[1].material.color.set( 0x000000 );
+    var intersects = raycaster2.intersectObjects([sphere, box]);
+    arrowHelper.children[1].material.color.set(0x000000);
 
     arrowHelper.scale.x = 1;
     arrowHelper.scale.z = 1;
     $('#cursor').css({
-            
+
         width: '10px',
         height: '10px',
         left: 'calc(50% - 5px)',
         top: 'calc(50% - 5px)',
-            })
-        
-      for ( var i = 0; i < intersects.length; i++ ) {
+    })
+
+    for (var i = 0; i < intersects.length; i++) {
 
         $('#cursor').css({
-            
-	width: '30px',
-	height: '30px',
-	left: 'calc(50% - 15px)',
-	top: 'calc(50% - 15px)',
+
+            width: '30px',
+            height: '30px',
+            left: 'calc(50% - 15px)',
+            top: 'calc(50% - 15px)',
         })
     }
 
@@ -388,13 +459,35 @@ function animate() {
     //     camera.position.y + (camera2.zoomDistance/4),
     //     camera.position.z - (camera2.zoomDistance*Math.sin(angleRadians))/2
     // )
-    camera2.position.set(camera2.zoomDistance/100,0,camera2.zoomDistance)
-    if (camera2.zoomDistance > 10){
+    camera2.position.set(camera2.zoomDistance / 100, 0, camera2.zoomDistance)
+    if (camera2.zoomDistance > 10) {
         camera2.zoomDistance = 10;
     }
 
     arrowHelper.position.copy(cameraController.getCurrentCamera().getWorldPosition(new THREE.Vector3()));
     arrowHelper.setDirection(cameraController.getCurrentCamera().getWorldDirection(new THREE.Vector3()))
+
+
+    lightBox.rotation.y+=.01;
+    lightBox.position.set(12.5, 0, 12.5)
+
+    var time = Date.now() * 0.0005;
+    for (var i = 0, il = lights.length; i < il; i++) {
+        var light = lights[i];
+        var x = Math.sin(time + i * 7.0) * 10;
+        var y = Math.cos(time + i * 5.0) * 10 ;
+        var z = Math.cos(time + i * 3.0) * 10;
+        light.position.set(x, y, z);
+        light.lookAt(player.position)
+        
+    }
+
+    let animationSpeed = 10;
+    let animationDistance = .0251;
+    sphere.position.y =  Math.cos(time*animationSpeed)*(animationDistance)+.5;
+    box.position.y =  Math.cos(time*animationSpeed)*(animationDistance)+.5;
+    box.rotation.y =  Math.cos(time*animationSpeed)*(animationDistance*3)+.5;
+    box.rotation.z =  Math.sin(time*animationSpeed/10)*(animationDistance*3)+.5;
 
     renderer.render(scene, cameraController.getCurrentCamera());
 

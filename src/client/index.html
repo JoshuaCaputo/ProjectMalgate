@@ -15,9 +15,77 @@
 
 </head>
 
-<body>
+<body onclick="$('#bgtuner')[0].play()">
     <div id="cursor"></div>
+    <style>
+    #stats {
+     position: absolute;
+     padding: 1vh 1vw;
+     border-radius: 1vh;
+     background-color: rgba(255, 248, 220, 0.1);
+    }
+    #stats #healthBar {
+        font-size: 3vh;
+        color: pink;
+        margin-top: 1vh;
+    }progress {
+  border: none;
+  background: crimson;
+}
 
+.manna {
+    color: skyblue !important;
+}
+.tri {
+    color: chocolate !important;
+}
+
+progress::-webkit-progress-value {
+  background: pink;
+}
+
+progress::-webkit-progress-bar {
+  background: white;
+}
+.manna progress::-webkit-progress-value {
+  background: skyblue;
+}
+.tri progress::-webkit-progress-value {
+  background:chocolate;
+}
+    </style>
+    
+    <div id="stats" style="left: 1vw !important;
+    top: 1vh;">
+            <div style="display: inline-block;">
+                    <div id="healthBar" style="text-align: center; font-size: 2vh; color: white !important;">Player Name <small>(1)</small></div>
+            </div>
+    </div>
+    <div id="stats" style="left: 1vw !important; bottom: 1vw !important;">
+            <div style="display: inline-block;">
+                    <div id="" style="text-align: left; text-decoration:font-size: 2vh; color: white !important;">username: <small>hello world</small></div>
+                    <div id="" style="text-align: left; text-decoration:font-size: 2vh; color: white !important;">username2: <small>hello world to you also</small></div>
+                    <div id="" style="text-align: left; text-decoration:font-size: 2vh; color: white !important;">username: <small>have you been on this game a long time?</small></div>
+            </div>
+    </div>
+    <div id="stats" style="right: 1vw;
+    top: 1vh;">
+            <div style="display: inline-block;">
+                    <div id="healthBar">&#9632; <progress class="hide_it" style="width: 10vw;" max="100" min="0" value="20"></progress></div>
+                    <div id="healthBar" class="manna">&#9675; <progress class="hide_it" style="width: 10vw;" max="100" min="0" value="90"></progress></div>
+                    <div id="healthBar" class="tri">&loz;	 <progress class="hide_it" style="width: 10vw;" max="100" min="0" value="50"></progress></div>
+            </div>
+    </div>
+
+    <audio id="myTune" autoplay>
+        <source src="sounds/footstep_jack_01.ogg">
+      </audio>
+      <audio id="myTune2">
+          <source src="sounds/bodyimpact_jack_01.wav">
+        </audio>
+        <audio id="bgtuner">
+            <source src="sounds/song18.mp3">
+          </audio>
     <div id="blocker">
 
         <div id="instructions">
